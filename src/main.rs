@@ -3,6 +3,7 @@
 
 mod strip;
 mod map;
+mod commands;
 
 use embedded_hal::serial::{Read, Write};
 use esp_backtrace as _;
@@ -13,8 +14,14 @@ use hal::uart::TxRxPins;
 use nb::block;
 use nb::Error::{WouldBlock, Other};
 use smart_leds::{RGB8, SmartLedsWrite};
+use crate::commands::command_handler::{CommandHandler};
+use crate::commands::command_handler;
+use crate::commands::hello_world_command::HelloWorldCommand;
+use crate::commands::reset_command::ResetCommand;
+use crate::commands::set_command::SetCommand;
 use crate::map::Map;
 use crate::strip::StripTiming;
+
 const LEDS_COUNT: usize = 72;
 const COMMAND_BUFFER: usize = 200;
 
@@ -84,7 +91,61 @@ fn main() -> ! {
 
     let mut rgb_data: [RGB8; 72] = [RGB8 { r: 0, g: 0, b: 0 }; 72];
     let mut map = map::Map::new(&map::INDEX_MAP, &mut rgb_data);
-    loop {
+    let mut handler = CommandHandler::new(
+        [
+        ],
+        ['\0'; COMMAND_BUFFER],
+    );
 
+    block!(serial.write(b'>')).ok().unwrap();
+    block!(serial.write(b' ')).ok().unwrap();
+    loop {
+        let handled = match handler.read_command(&mut serial) {
+            Ok(()) => {
+                println!("\r");
+                let result = handler.handle_command(&mut map);
+
+                match result {
+                    Ok(()) => Ok(true),
+                    Err(err) => Err(err)
+                }
+            }
+            Err(err) => {
+                match err {
+                    Other(error) => {
+                        match error {
+                            command_handler::CommandReadError::BufferOverflowed => println!("Command is too long.\r"),
+                            command_handler::CommandReadError::UnexpectedEndOfLine => (),
+                            command_handler::CommandReadError::CommandLoadedAlready => println!("FATAL: Previous command not processed correctly.\r")
+                        };
+                        Ok(true)
+                    }
+                    _ => Ok(false)
+                }
+            }
+        };
+
+        let new_command = match handled {
+            Ok(handled) => {
+                handled
+            }
+            Err(err) => {
+                match err {
+                    command_handler::CommandHandleError::NotFound => println!("Command not found.\r"),
+                    command_handler::CommandHandleError::WrongArguments => println!("Wrong arguments.\r"),
+                    command_handler::CommandHandleError::CommandNotRead => println!("FATAL: Command is not prepared.\r")
+                }
+                true
+            }
+        };
+
+        if new_command {
+            println!("\r");
+            block!(serial.write(b'>')).ok().unwrap();
+            block!(serial.write(b' ')).ok().unwrap();
+        }
+
+        strip.write(map.get_map().cloned()).unwrap();
+        delay.delay_us(500u32);
     }
 }
