@@ -93,9 +93,11 @@ fn main() -> ! {
     let mut map = map::Map::new(&map::INDEX_MAP, &mut rgb_data);
 
     let world_command = HelloWorldCommand::new();
+    let set_command = SetCommand::new();
     let mut handler = CommandHandler::new(
         [
             ("HELLO_WORLD", &world_command),
+            ("SET", &set_command),
         ],
         ['\0'; COMMAND_BUFFER],
     );
