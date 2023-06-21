@@ -94,10 +94,12 @@ fn main() -> ! {
 
     let world_command = HelloWorldCommand::new();
     let set_command = SetCommand::new();
+    let reset_command = ResetCommand::new();
     let mut handler = CommandHandler::new(
         [
             ("HELLO_WORLD", &world_command),
             ("SET", &set_command),
+            ("RESET", &reset_command),
         ],
         ['\0'; COMMAND_BUFFER],
     );
