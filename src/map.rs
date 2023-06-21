@@ -101,7 +101,7 @@ impl<'d> Map<'d> {
 
             let mut matches = true;
             for (j, c) in current.chars().enumerate() {
-                if name[j] != c {
+                if name[j] != c && (name[j] as u8 - b'a' + b'A') != (c as u8) {
                     matches = false;
                     break;
                 }

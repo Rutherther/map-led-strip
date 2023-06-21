@@ -52,7 +52,7 @@ impl<'d> CommandArgument<'d>
         for (i, c) in self.data.iter().enumerate() {
             let compare_against = to[i];
 
-            if compare_against != (*c) as u8 {
+            if compare_against != (*c) as u8 && compare_against != (((*c) as u8) - b'a' + b'A') {
                 return false;
             }
         }
