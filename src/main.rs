@@ -2,6 +2,8 @@
 #![no_main]
 
 mod strip;
+mod map;
+
 use embedded_hal::serial::{Read, Write};
 use esp_backtrace as _;
 use esp_println::println;
@@ -11,6 +13,7 @@ use hal::uart::TxRxPins;
 use nb::block;
 use nb::Error::{WouldBlock, Other};
 use smart_leds::{RGB8, SmartLedsWrite};
+use crate::map::Map;
 use crate::strip::StripTiming;
 const LEDS_COUNT: usize = 72;
 const COMMAND_BUFFER: usize = 200;
@@ -80,6 +83,7 @@ fn main() -> ! {
     );
 
     let mut rgb_data: [RGB8; 72] = [RGB8 { r: 0, g: 0, b: 0 }; 72];
+    let mut map = map::Map::new(&map::INDEX_MAP, &mut rgb_data);
     loop {
 
     }
