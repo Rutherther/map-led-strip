@@ -14,6 +14,7 @@ use hal::uart::TxRxPins;
 use nb::block;
 use nb::Error::{WouldBlock, Other};
 use smart_leds::{RGB8, SmartLedsWrite};
+use crate::commands::all_command::AllCommand;
 use crate::commands::command_handler::{CommandHandler};
 use crate::commands::command_handler;
 use crate::commands::hello_world_command::HelloWorldCommand;
@@ -95,11 +96,13 @@ fn main() -> ! {
     let world_command = HelloWorldCommand::new();
     let set_command = SetCommand::new();
     let reset_command = ResetCommand::new();
+    let all_command = AllCommand::new();
     let mut handler = CommandHandler::new(
         [
             ("HELLO_WORLD", &world_command),
             ("SET", &set_command),
             ("RESET", &reset_command),
+            ("ALL", &all_command)
         ],
         ['\0'; COMMAND_BUFFER],
     );
