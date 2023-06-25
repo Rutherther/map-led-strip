@@ -47,12 +47,16 @@ impl<const LEDS_COUNT: usize> Animation for SnakeAnimation<LEDS_COUNT> {
     }
 
     fn next(&mut self) -> Result<AnimationStep, AnimationError> {
-        if self.step == LEDS_COUNT + 100 {
-            self.finished = true;
+        let last = LEDS_COUNT + 100;
+        if self.step == last {
             return Err(AnimationError::LastStep);
         }
 
         self.step += 1;
+        if self.step == last {
+            self.finished = true;
+        }
+
         Ok(AnimationStep::new(self.step_duration))
     }
 
