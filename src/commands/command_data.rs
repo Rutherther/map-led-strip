@@ -36,4 +36,8 @@ impl<'d, 'a> CommandData<'d, 'a> {
     pub fn deconstruct_animation(self) -> (&'d Command<'d>, &'d mut AnimationStorage) {
         (self.command, self.animation_storage)
     }
+
+    pub fn deconstruct(self) -> (&'d Command<'d>, &'d mut Map<'a>, &'d mut AnimationStorage) {
+        (self.command, self.map, self.animation_storage)
+    }
 }

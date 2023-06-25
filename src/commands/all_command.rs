@@ -8,7 +8,7 @@ pub struct AllCommand;
 
 impl SpecificCommandHandler for AllCommand {
     fn handle(&self, command: CommandData) -> Result<(), CommandHandleError> {
-        let (cmd, map) = command.deconstruct();
+        let (cmd, map) = command.deconstruct_map();
 
         if cmd.parsed_arguments().len() < 4 {
             println!("Less than 4 args.");

@@ -6,11 +6,9 @@ pub struct ResetCommand;
 
 impl SpecificCommandHandler for ResetCommand {
     fn handle(&self, command: CommandData) -> Result<(), CommandHandleError> {
-        for led in command.map().get_map_mut() {
-            led.r = 0;
-            led.g = 0;
-            led.b = 0;
-        }
+        let (_, map, animation) = command.deconstruct();
+        map.clear();
+        animation.remove_animation();
         Ok(())
     }
 
