@@ -1,11 +1,14 @@
 #![no_std]
 #![no_main]
 
+extern crate alloc;
+
 mod strip;
 mod map;
 mod commands;
 
 use embedded_hal::serial::{Write};
+use alloc::boxed::Box;
 use esp_backtrace as _;
 use esp_println::println;
 use hal::{clock::ClockControl, peripherals::Peripherals, prelude::*, timer::{TimerGroup}, Rtc, IO, Delay, PulseControl, Uart};
@@ -24,6 +27,21 @@ use crate::strip::StripTiming;
 
 const LEDS_COUNT: usize = 72;
 const COMMAND_BUFFER: usize = 200;
+#[global_allocator]
+static ALLOCATOR: EspHeap = EspHeap::empty();
+
+fn init_heap() {
+    extern "C" {
+        static mut _heap_start: u32;
+        static mut _heap_end: u32;
+    }
+
+    unsafe {
+        let heap_start = &_heap_start as *const _ as usize;
+        let heap_end = &_heap_end as *const _ as usize;
+        ALLOCATOR.init(heap_start as *mut u8, heap_end - heap_start);
+    }
+}
 
 #[entry]
 fn main() -> ! {
@@ -31,6 +49,8 @@ fn main() -> ! {
     let peripherals = Peripherals::take();
     let mut system = peripherals.DPORT.split();
     let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
+
+    init_heap();
 
     // Disable the RTC and TIMG watchdog timers
     let mut rtc = Rtc::new(peripherals.RTC_CNTL);
@@ -92,18 +112,16 @@ fn main() -> ! {
     let mut rgb_data: [RGB8; 72] = [RGB8 { r: 0, g: 0, b: 0 }; 72];
     let mut map = map::Map::new(&map::INDEX_MAP, &mut rgb_data);
 
-    let world_command = HelloWorldCommand::default();
-    let set_command = SetCommand::default();
-    let reset_command = ResetCommand::default();
-    let all_command = AllCommand::default();
+    // Init commands
     let mut handler = CommandHandler::new(
         [
-            ("HELLO_WORLD", &world_command),
-            ("SET", &set_command),
-            ("RESET", &reset_command),
-            ("ALL", &all_command)
+            ("HELLO_WORLD", Box::new(HelloWorldCommand::default())),
+            ("SET", Box::new(SetCommand::default())),
+            ("RESET", Box::new(ResetCommand::default())),
+            ("ALL", Box::new(AllCommand::default())),
+            ("SNAKE", Box::new(SnakeCommand::default()))
         ],
-        ['\0'; COMMAND_BUFFER],
+        ['\0'; constants::COMMAND_BUFFER],
     );
 
     block!(serial.write(b'>')).ok().unwrap();

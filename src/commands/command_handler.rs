@@ -1,3 +1,4 @@
+use alloc::boxed::Box;
 use embedded_hal::serial::{Read, Write};
 use esp_println::println;
 use nb::block;
@@ -15,7 +16,7 @@ pub struct CommandHandler<'d, const BUFFER_SIZE: usize, const HANDLERS_COUNT: us
     buffer_position: usize,
     command_loaded: bool,
     buffer: [char; BUFFER_SIZE],
-    handlers: [(&'d str, &'d dyn SpecificCommandHandler); HANDLERS_COUNT],
+    handlers: [(&'d str, Box<dyn SpecificCommandHandler>); HANDLERS_COUNT],
     handling_special: u8
 }
 
@@ -34,7 +35,7 @@ pub enum CommandHandleError {
 }
 
 impl<'d, const BUFFER_SIZE: usize, const HANDLERS_COUNT: usize> CommandHandler<'d, BUFFER_SIZE, HANDLERS_COUNT> {
-    pub fn new(handlers: [(&'d str, &'d dyn SpecificCommandHandler); HANDLERS_COUNT], buffer: [char; BUFFER_SIZE]) -> Self
+    pub fn new(handlers: [(&'d str, Box<dyn SpecificCommandHandler>); HANDLERS_COUNT], buffer: [char; BUFFER_SIZE]) -> Self
     {
         Self {
             command_loaded: false,
@@ -156,7 +157,7 @@ impl<'d, const BUFFER_SIZE: usize, const HANDLERS_COUNT: usize> CommandHandler<'
     fn handle_help(&self) -> Result<(), CommandHandleError>
     {
         println!("Available commands:\r");
-        for (cmd, handler) in self.handlers {
+        for (cmd, handler) in &self.handlers {
             println!("  {0} {1}\r", cmd, handler.help());
         }
 
@@ -187,7 +188,7 @@ impl<'d, const BUFFER_SIZE: usize, const HANDLERS_COUNT: usize> CommandHandler<'
             return help_handled;
         }
 
-        for (handler_command, handler) in self.handlers {
+        for (handler_command, handler) in &self.handlers {
             if !first_argument.compare(handler_command) {
                 continue;
             }
