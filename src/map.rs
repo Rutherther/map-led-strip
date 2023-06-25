@@ -115,19 +115,22 @@ impl<'d> Map<'d> {
         return Err(Error::NotFound);
     }
 
+    pub fn set(&mut self, index: usize, rgb: RGB8) -> Result<(), Error> {
+        self.data[index] = rgb;
+        Ok(())
+    }
+
     pub fn set_rgb(&mut self, index: usize, r: Option<u8>, g: Option<u8>, b: Option<u8>) -> Result<(), Error> {
         let original = self.data[index];
         if self.data.len() <= index {
             return Err(Error::NotFound)
         }
 
-        self.data[index] = RGB8 {
+        self.set(index, RGB8 {
             r: r.unwrap_or(original.r),
             g: g.unwrap_or(original.g),
             b: b.unwrap_or(original.b),
-        };
-
-        Ok(())
+        })
     }
 
     pub fn set_rgb_by_name(&mut self, name: &[char], r: Option<u8>, g: Option<u8>, b: Option<u8>) -> Result<(), Error> {

@@ -3,6 +3,7 @@ use embedded_hal::serial::{Read, Write};
 use esp_println::println;
 use nb::block;
 use nb::Error::{Other, WouldBlock};
+use crate::animations::animation_storage::AnimationStorage;
 use crate::command_handler::{CommandHandleError::{CommandNotRead, NotFound}, CommandReadError::{BufferOverflowed, CommandLoadedAlready, UnexpectedEndOfLine}};
 use crate::commands::{command::Command, command_argument::CommandArgument, command_data::CommandData};
 use crate::map::Map;
@@ -164,7 +165,7 @@ impl<'d, const BUFFER_SIZE: usize, const HANDLERS_COUNT: usize> CommandHandler<'
         Ok(())
     }
 
-    pub fn handle_command(&mut self, map: &mut Map) -> Result<(), CommandHandleError>
+    pub fn handle_command(&mut self, map: &mut Map, animation_storage: &mut AnimationStorage) -> Result<(), CommandHandleError>
     {
         if !self.command_loaded {
             return Err(CommandNotRead);
@@ -193,7 +194,7 @@ impl<'d, const BUFFER_SIZE: usize, const HANDLERS_COUNT: usize> CommandHandler<'
                 continue;
             }
 
-            let command_data = CommandData::new(&command, map);
+            let command_data = CommandData::new(&command, map, animation_storage);
             let handled = handler.handle(command_data);
             self.reset();
             return handled;
