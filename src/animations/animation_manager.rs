@@ -44,7 +44,10 @@ impl<Timer: CountDown<Time=MicrosDurationU64>> AnimationManager<Timer> {
             } else {
                 return Err(WouldBlock);
             };
-            animation.apply(map)?;
+
+            if !step_result.is_err() {
+                animation.apply(map)?;
+            }
         }
 
         let step = match step_result {
