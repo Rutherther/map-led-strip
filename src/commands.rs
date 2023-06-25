@@ -6,3 +6,4 @@ pub mod set_command;
 pub mod reset_command;
 pub mod all_command;
 pub mod command_data;
+pub mod snake_command;
