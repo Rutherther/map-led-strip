@@ -5,14 +5,14 @@ mod strip;
 mod map;
 mod commands;
 
-use embedded_hal::serial::{Read, Write};
+use embedded_hal::serial::{Write};
 use esp_backtrace as _;
 use esp_println::println;
-use hal::{clock::ClockControl, pulse_control::{ClockSource}, peripherals::Peripherals, prelude::*, timer::{TimerGroup, Timer, Timer0}, Rtc, IO, Delay, interrupt, PulseControl, Uart};
+use hal::{clock::ClockControl, peripherals::Peripherals, prelude::*, timer::{TimerGroup}, Rtc, IO, Delay, PulseControl, Uart};
 use hal::uart::config::{Config, DataBits, Parity, StopBits};
 use hal::uart::TxRxPins;
 use nb::block;
-use nb::Error::{WouldBlock, Other};
+use nb::Error::{Other};
 use smart_leds::{RGB8, SmartLedsWrite};
 use crate::commands::all_command::AllCommand;
 use crate::commands::command_handler::{CommandHandler};
@@ -20,7 +20,6 @@ use crate::commands::command_handler;
 use crate::commands::hello_world_command::HelloWorldCommand;
 use crate::commands::reset_command::ResetCommand;
 use crate::commands::set_command::SetCommand;
-use crate::map::Map;
 use crate::strip::StripTiming;
 
 const LEDS_COUNT: usize = 72;
@@ -93,10 +92,10 @@ fn main() -> ! {
     let mut rgb_data: [RGB8; 72] = [RGB8 { r: 0, g: 0, b: 0 }; 72];
     let mut map = map::Map::new(&map::INDEX_MAP, &mut rgb_data);
 
-    let world_command = HelloWorldCommand::new();
-    let set_command = SetCommand::new();
-    let reset_command = ResetCommand::new();
-    let all_command = AllCommand::new();
+    let world_command = HelloWorldCommand::default();
+    let set_command = SetCommand::default();
+    let reset_command = ResetCommand::default();
+    let all_command = AllCommand::default();
     let mut handler = CommandHandler::new(
         [
             ("HELLO_WORLD", &world_command),

@@ -1,26 +1,21 @@
 use esp_println::println;
-use crate::commands::command_handler::{CommandData, CommandHandleError, SpecificCommandHandler};
+use crate::commands::command_handler::{CommandHandleError, SpecificCommandHandler};
 use crate::commands::command_handler::CommandHandleError::WrongArguments;
+use crate::commands::command_data::CommandData;
 
-pub struct SetCommand {}
-
-impl SetCommand {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
+#[derive(Default)]
+pub struct SetCommand;
 
 impl SpecificCommandHandler for SetCommand {
-    fn handle(&self, command: &mut CommandData) -> Result<(), CommandHandleError> {
-        let cmd = &command.command;
-        let map = &mut command.map;
+    fn handle(&self, command: CommandData) -> Result<(), CommandHandleError> {
+        let (cmd, map) = command.deconstruct();
 
-        if cmd.parsed_arguments.len() < 5 {
+        if cmd.parsed_arguments().len() < 5 {
             println!("Less than 5 args.");
             return Err(WrongArguments);
         }
 
-        let led_id = cmd.parsed_arguments[1];
+        let led_id = cmd.parsed_arguments()[1];
         let led_id = if let Some(id) = led_id.try_to_integer() {
             Some(id as usize)
         } else {
@@ -32,9 +27,9 @@ impl SpecificCommandHandler for SetCommand {
             return Err(WrongArguments);
         }
 
-        let r = cmd.parsed_arguments[2].try_to_integer();
-        let g = cmd.parsed_arguments[3].try_to_integer();
-        let b = cmd.parsed_arguments[4].try_to_integer();
+        let r = cmd.parsed_arguments()[2].try_to_integer();
+        let g = cmd.parsed_arguments()[3].try_to_integer();
+        let b = cmd.parsed_arguments()[4].try_to_integer();
 
         if r.is_none() || g.is_none() || b.is_none() {
             println!("Cold not parse r, g, b.");

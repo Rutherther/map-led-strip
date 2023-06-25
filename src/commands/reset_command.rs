@@ -1,17 +1,12 @@
-use crate::commands::command_handler::{CommandData, CommandHandleError, SpecificCommandHandler};
-use crate::commands::command_handler::CommandHandleError::WrongArguments;
+use crate::commands::command_handler::{CommandHandleError, SpecificCommandHandler};
+use crate::commands::command_data::CommandData;
 
-pub struct ResetCommand {}
-
-impl ResetCommand {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
+#[derive(Default)]
+pub struct ResetCommand;
 
 impl SpecificCommandHandler for ResetCommand {
-    fn handle(&self, command: &mut CommandData) -> Result<(), CommandHandleError> {
-        for led in command.map.get_map_mut() {
+    fn handle(&self, command: CommandData) -> Result<(), CommandHandleError> {
+        for led in command.map().get_map_mut() {
             led.r = 0;
             led.g = 0;
             led.b = 0;

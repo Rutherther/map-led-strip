@@ -1,22 +1,14 @@
-use core::slice::IterMut;
 use embedded_hal::serial::{Read, Write};
-use esp_println::{print, println};
+use esp_println::println;
 use nb::block;
 use nb::Error::{Other, WouldBlock};
-use crate::command_handler::CommandHandleError::{CommandNotRead, NotFound};
-use crate::command_handler::CommandReadError::{BufferOverflowed, CommandLoadedAlready, UnexpectedEndOfLine};
-use crate::commands::command::Command;
-use crate::commands::command_argument::CommandArgument;
+use crate::command_handler::{CommandHandleError::{CommandNotRead, NotFound}, CommandReadError::{BufferOverflowed, CommandLoadedAlready, UnexpectedEndOfLine}};
+use crate::commands::{command::Command, command_argument::CommandArgument, command_data::CommandData};
 use crate::map::Map;
 
 pub trait SpecificCommandHandler {
-    fn handle(&self, command: &mut CommandData) -> Result<(), CommandHandleError>;
+    fn handle(&self, command: CommandData) -> Result<(), CommandHandleError>;
     fn help(&self) -> &'static str;
-}
-
-pub struct CommandData<'d, 'a> {
-    pub command: Command<'d>,
-    pub map: &'d mut Map<'a>,
 }
 
 pub struct CommandHandler<'d, const BUFFER_SIZE: usize, const HANDLERS_COUNT: usize> {
@@ -158,10 +150,7 @@ impl<'d, const BUFFER_SIZE: usize, const HANDLERS_COUNT: usize> CommandHandler<'
             }
         }
 
-        Command {
-            full: buffer,
-            parsed_arguments: &args[0..length],
-        }
+        Command::new(buffer, &args[0..length])
     }
 
     fn handle_help(&self) -> Result<(), CommandHandleError>
@@ -185,12 +174,12 @@ impl<'d, const BUFFER_SIZE: usize, const HANDLERS_COUNT: usize> CommandHandler<'
 
         let command = self.parse_command(buffer, &mut args);
 
-        if command.parsed_arguments.len() == 0 {
+        if command.parsed_arguments().len() == 0 {
             self.reset();
             return Err(NotFound);
         }
 
-        let first_argument = command.parsed_arguments[0];
+        let first_argument = command.parsed_arguments()[0];
 
         if first_argument.compare("HELP") {
             let help_handled = self.handle_help();
@@ -203,12 +192,8 @@ impl<'d, const BUFFER_SIZE: usize, const HANDLERS_COUNT: usize> CommandHandler<'
                 continue;
             }
 
-            let mut command_data = CommandData {
-                command,
-                map,
-            };
-
-            let handled = handler.handle(&mut command_data);
+            let command_data = CommandData::new(&command, map);
+            let handled = handler.handle(command_data);
             self.reset();
             return handled;
         }

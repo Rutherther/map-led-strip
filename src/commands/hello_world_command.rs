@@ -1,24 +1,18 @@
-use embedded_hal::serial::{Read, Write};
 use esp_println::{print, println};
-use crate::command_handler::{CommandData, CommandHandleError, SpecificCommandHandler};
-use crate::map::Map;
+use crate::command_handler::{CommandHandleError, SpecificCommandHandler};
+use crate::commands::command_data::CommandData;
 
-pub struct HelloWorldCommand {
-
-}
-
-impl HelloWorldCommand {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
+#[derive(Default)]
+pub struct HelloWorldCommand;
 
 impl SpecificCommandHandler for HelloWorldCommand
 {
-    fn handle(&self, command: &mut CommandData) -> Result<(), CommandHandleError>
+    fn handle(&self, command: CommandData) -> Result<(), CommandHandleError>
     {
+        let command = command.command();
+        let full = command.full();
         print!("Hello world!");
-        for c in &command.command.full[command.command.parsed_arguments[0].data.len()..] {
+        for c in &full[command.parsed_arguments()[0].data.len()..] {
             print!("{}", c);
         }
         println!("\r");
