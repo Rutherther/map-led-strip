@@ -138,6 +138,14 @@ impl<'d> Map<'d> {
         self.set_rgb(index, r, g, b)
     }
 
+    pub fn clear(&mut self) {
+        for led in self.get_map_mut() {
+            led.r = 0;
+            led.g = 0;
+            led.b = 0;
+        }
+    }
+
     pub fn get_map(&self) -> Iter<RGB8> {
         return self.data.iter();
     }

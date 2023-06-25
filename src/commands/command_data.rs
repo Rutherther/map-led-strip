@@ -29,7 +29,7 @@ impl<'d, 'a> CommandData<'d, 'a> {
         self.map
     }
 
-    pub fn deconstruct(self) -> (&'d Command<'d>, &'d mut Map<'a>) {
+    pub fn deconstruct_map(self) -> (&'d Command<'d>, &'d mut Map<'a>) {
         (self.command, self.map)
     }
 

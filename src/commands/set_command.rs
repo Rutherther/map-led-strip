@@ -8,7 +8,7 @@ pub struct SetCommand;
 
 impl SpecificCommandHandler for SetCommand {
     fn handle(&self, command: CommandData) -> Result<(), CommandHandleError> {
-        let (cmd, map) = command.deconstruct();
+        let (cmd, map) = command.deconstruct_map();
 
         if cmd.parsed_arguments().len() < 5 {
             println!("Less than 5 args.");
